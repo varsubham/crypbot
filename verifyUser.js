@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({ path: `./.env` });
+const userAuth = require("./userAuth/userAuth.json");
+
 /**
  * Verify if the admin user is accessing the route
  *
@@ -7,17 +9,16 @@ require("dotenv").config();
  * @return {Boolean} If user is verified or not.
  */
 module.exports = function verifyUser(user, response) {
-  // correct username and password
-  const authUsername = process.env.username;
-  const authPassword = process.env.password;
+  // Auth username and password
+  const authUsername = userAuth.username;
+  const authPassword = userAuth.password;
 
   const { username, password } = user;
-  console.log(typeof username);
 
   if (username === authUsername && password === authPassword) {
     return true;
   } else {
-    response.status(403).send("User is forbidden");
+    response.status(403).json({ success: false, message: "User forbidden" });
     return false;
   }
 };
