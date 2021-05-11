@@ -1,6 +1,6 @@
 require("dotenv").config({ path: `../.env` });
 const bitbnsAPI = require("bitbns");
-const sendNotification = require("../telegram_api");
+const { sendNotification } = require("../telegram_api");
 
 // created object to interact with bitbns api
 const bitbns = new bitbnsAPI({
