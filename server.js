@@ -37,12 +37,16 @@ app.post("/api/notifyPriceChange", (req, res) => {
     return;
   }
   // start price check
-  startPriceCheck(crypto, price_to_hit);
+  startPriceCheck(crypto, price_to_hit, (response) => {
+    console.log(response);
+    res.json(response);
+    return;
+  });
 
   // assuming startPriceCheck function started without
   // any problem.
   // TODO: find a better approach here
-  res.send("started");
+  // res.send("started");
 });
 
 // stop price check

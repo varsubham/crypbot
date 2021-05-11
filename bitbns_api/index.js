@@ -9,20 +9,27 @@ const bitbns = new bitbnsAPI({
 });
 
 let intervalObj;
+let runOnlyOnce;
 
 exports.stopPriceCheck = () => {
   clearInterval(intervalObj);
 };
 
-exports.startPriceCheck = (crypto, price_to_hit) => {
+exports.startPriceCheck = (crypto, price_to_hit, callback) => {
+  runOnlyOnce = true;
   intervalObj = setInterval(() => {
-    checkPrice(crypto, price_to_hit);
-  }, 2000);
+    checkPrice(crypto, price_to_hit, callback);
+  }, 1000);
 };
 
-function checkPrice(crypto, price_to_hit) {
+function checkPrice(crypto, price_to_hit, callback) {
   bitbns.getTickerApi(crypto, (err, data) => {
     if (!err && data.status == 1) {
+      // !err in getTickerApi i.e., getTickerApi started look for crypto price
+      if (runOnlyOnce) {
+        callback({ success: true, message: "Price check started" });
+        runOnlyOnce = false;
+      }
       try {
         if (typeof data.data !== "string") {
           if (data.data[crypto].last_traded_price > price_to_hit) {
@@ -37,6 +44,10 @@ function checkPrice(crypto, price_to_hit) {
         console.log(err);
       }
     } else {
+      if (runOnlyOnce) {
+        callback({ success: false, err });
+        runOnlyOnce = false;
+      }
       console.log(err);
     }
   });
