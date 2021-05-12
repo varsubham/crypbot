@@ -59,10 +59,15 @@ app.post("/api/notifyPriceChange", (req, res) => {
 });
 
 // stop price check
-app.post("/api/stopPriceCheck", (req, res) => {
-  const { intervalId } = req.body;
+app.post("/api/stopPriceCheck/:intervalId", (req, res) => {
+  const { intervalId } = req.params;
   stopPriceCheck(intervalId, (response) => {
     res.json(response);
+
+    // send notification to telegram that priceCheck has stopped
+    if (response.success) {
+      sendNotification(`PriceCheck stopped for ID=${intervalId}`);
+    }
   });
 });
 
