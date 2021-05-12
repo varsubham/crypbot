@@ -45,7 +45,6 @@ app.post("/api/notifyPriceChange", (req, res) => {
   // start price check
   startPriceCheck(crypto, price_to_hit, (response) => {
     if (runOnlyOnce) {
-      console.log(response);
       res.json(response);
       runOnlyOnce = false;
 

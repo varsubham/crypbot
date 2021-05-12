@@ -8,7 +8,6 @@ const BASE_URL = "https://api.telegram.org/bot";
 
 // send notification to telegram user
 exports.sendNotification = (message) => {
-  console.log(message);
   axios.get(`${BASE_URL}${telegram_token}/sendMessage`, {
     params: {
       chat_id,
