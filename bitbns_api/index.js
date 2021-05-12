@@ -1,6 +1,10 @@
 require("dotenv").config({ path: `../.env` });
 const bitbnsAPI = require("bitbns");
-const sendNotification = require("../telegram_api");
+const { sendNotification } = require("../telegram_api");
+const { generateId, pushId } = require("../ids");
+
+//Global variables
+let intervalObj = {};
 
 // created object to interact with bitbns api
 const bitbns = new bitbnsAPI({
@@ -8,35 +12,45 @@ const bitbns = new bitbnsAPI({
   apiSecretKey: process.env.apiSecretKey,
 });
 
-let intervalObj;
-let runOnlyOnce;
-
+// TODO: add functionality to clearInterval
+// using a intervalId
 exports.stopPriceCheck = () => {
   clearInterval(intervalObj);
 };
 
 exports.startPriceCheck = (crypto, price_to_hit, callback) => {
-  runOnlyOnce = true;
-  intervalObj = setInterval(() => {
-    checkPrice(crypto, price_to_hit, callback);
-  }, 1000);
+  const newIntervalObjId = generateId();
+  const newIntervalObj = setInterval(() => {
+    checkPrice(crypto, price_to_hit, callback, newIntervalObjId);
+  }, 2000);
+  intervalObj[newIntervalObjId] = newIntervalObj;
 };
 
-function checkPrice(crypto, price_to_hit, callback) {
+function clearTheInterval(id) {
+  const interval = intervalObj[id];
+  clearInterval(interval);
+  delete intervalObj[id];
+  pushId(id);
+}
+
+function checkPrice(crypto, price_to_hit, callback, newIntervalId) {
   bitbns.getTickerApi(crypto, (err, data) => {
     if (!err && data.status == 1) {
-      // !err in getTickerApi i.e., getTickerApi started look for crypto price
-      if (runOnlyOnce) {
-        callback({ success: true, message: "Price check started" });
-        runOnlyOnce = false;
-      }
+      // !err in getTickerApi i.e., getTickerApi started looking for crypto price
+      callback({
+        success: true,
+        message: "Price check started",
+        intervalId: newIntervalId,
+      });
       try {
         if (typeof data.data !== "string") {
           if (data.data[crypto].last_traded_price > price_to_hit) {
-            clearInterval(intervalObj);
+            // clear interval
+            clearTheInterval(newIntervalId);
             console.log("price hit");
+
             // send notification to telegram bot
-            sendNotification(crypto, price_to_hit);
+            sendNotification(`${crypto} is more than ₹${price_to_hit}`);
             return;
           } else console.log(data.data[crypto].last_traded_price);
         }
@@ -44,10 +58,7 @@ function checkPrice(crypto, price_to_hit, callback) {
         console.log(err);
       }
     } else {
-      if (runOnlyOnce) {
-        callback({ success: false, err });
-        runOnlyOnce = false;
-      }
+      callback({ success: false, err });
       console.log(err);
     }
   });

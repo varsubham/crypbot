@@ -3,6 +3,7 @@ const express = require("express");
 const verifyUser = require("./verifyUser");
 const bodyParser = require("body-parser");
 const { stopPriceCheck, startPriceCheck } = require("./bitbns_api");
+const { sendNotification } = require("./telegram_api");
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -36,17 +37,26 @@ app.post("/api/notifyPriceChange", (req, res) => {
     });
     return;
   }
+
+  // the callback function from startPriceCheck should run
+  // only once
+  let runOnlyOnce = true;
+
   // start price check
   startPriceCheck(crypto, price_to_hit, (response) => {
-    console.log(response);
-    res.json(response);
-    return;
-  });
+    if (runOnlyOnce) {
+      console.log(response);
+      res.json(response);
+      runOnlyOnce = false;
 
-  // assuming startPriceCheck function started without
-  // any problem.
-  // TODO: find a better approach here
-  // res.send("started");
+      // send notification to telegram that priceCheck has started
+      if (response.success) {
+        sendNotification(
+          `PriceCheck started for ${crypto} to hit price of ₹${price_to_hit} with ID=${response.intervalId}`
+        );
+      }
+    }
+  });
 });
 
 // stop price check
