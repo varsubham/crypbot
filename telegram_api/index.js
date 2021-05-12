@@ -7,11 +7,12 @@ const chat_id = process.env.telegram_chat_id;
 const BASE_URL = "https://api.telegram.org/bot";
 
 // send notification to telegram user
-exports.sendNotification = (crypto, price_to_hit) => {
+exports.sendNotification = (message) => {
+  console.log(message);
   axios.get(`${BASE_URL}${telegram_token}/sendMessage`, {
     params: {
       chat_id,
-      text: `${crypto} is more than ₹${price_to_hit}`,
+      text: `${message}`,
     },
   });
 };
