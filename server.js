@@ -60,10 +60,9 @@ app.post("/api/notifyPriceChange", (req, res) => {
 
 // stop price check
 app.post("/api/stopPriceCheck", (req, res) => {
-  stopPriceCheck();
-  res.json({
-    success: true,
-    message: "price check stopped",
+  const { intervalId } = req.body;
+  stopPriceCheck(intervalId, (response) => {
+    res.json(response);
   });
 });
 

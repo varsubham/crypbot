@@ -12,10 +12,16 @@ const bitbns = new bitbnsAPI({
   apiSecretKey: process.env.apiSecretKey,
 });
 
-// TODO: add functionality to clearInterval
-// using a intervalId
-exports.stopPriceCheck = () => {
-  clearInterval(intervalObj);
+exports.stopPriceCheck = (intervalId, callback) => {
+  if (intervalObj[intervalId]) {
+    clearTheInterval(intervalId);
+    callback({
+      success: true,
+      message: `Stopped priceCheck for id ${intervalId}`,
+    });
+  } else {
+    callback({ success: false, message: `Send a valid intervalId` });
+  }
 };
 
 exports.startPriceCheck = (crypto, price_to_hit, callback) => {
