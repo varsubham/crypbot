@@ -7,6 +7,7 @@ const {
   stopPriceCheck,
   startPriceCheck,
   stopAllPriceCheck,
+  getCurrentPortfolio,
 } = require("./bitbns_api");
 
 const app = express();
@@ -89,6 +90,12 @@ app.post("/api/stopPriceCheck", (req, res) => {
       });
       sendNotification(notificationMessage);
     }
+  });
+});
+
+app.get("/api/getPortfolio", (req, res) => {
+  getCurrentPortfolio((response) => {
+    res.json(response);
   });
 });
 

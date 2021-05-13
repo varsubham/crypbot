@@ -90,3 +90,54 @@ function checkPrice(crypto, price_to_hit, callback, newIntervalId) {
     }
   });
 }
+
+function getLastTradedPrice(crypto) {
+  const promise = new Promise((resolve, reject) => {
+    bitbns.getTickerApi(crypto, (err, data) => {
+      if (!err) {
+        resolve(data.data[crypto].last_traded_price);
+      } else {
+        reject(err);
+      }
+    });
+  });
+  return promise;
+}
+
+function getCryptoSymb(key) {
+  const availableOrder = "availableorder";
+  const inOrder = "inorder";
+  const crypto = key.startsWith(availableOrder)
+    ? key.substr(availableOrder.length, key.length - availableOrder.length)
+    : key.startsWith(inOrder)
+    ? key.substr(inOrder.length, key.length - inOrder.length)
+    : null;
+  return crypto;
+}
+
+exports.getCurrentPortfolio = (callback) => {
+  let currentPortfolio = 0.0;
+  bitbns.currentCoinBalance("EVERYTHING", async function (error, data) {
+    if (!error) {
+      const obj = data.data;
+      for (const key of Object.keys(obj)) {
+        if (obj[key] != 0) {
+          const crypto = getCryptoSymb(key);
+          if (crypto === "Money") {
+            currentPortfolio += obj[key];
+          } else {
+            const cryptoPrice = await getLastTradedPrice(crypto);
+            currentPortfolio += cryptoPrice * obj[key];
+          }
+        }
+      }
+      callback({
+        success: true,
+        currentPortfolio: `₹${currentPortfolio.toFixed(2)}`,
+      });
+    } else {
+      console.log("Error ::", error);
+      callback({ success: false, error });
+    }
+  });
+};
