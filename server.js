@@ -2,8 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const verifyUser = require("./verifyUser");
 const bodyParser = require("body-parser");
-const { stopPriceCheck, startPriceCheck } = require("./bitbns_api");
 const { sendNotification } = require("./telegram_api");
+const {
+  stopPriceCheck,
+  startPriceCheck,
+  stopAllPriceCheck,
+} = require("./bitbns_api");
+
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -18,7 +23,7 @@ app.use(bodyParser.json());
 
 // endpoints
 
-// get notification if price hit certain value
+// get notification if price is more than certain value
 app.post("/api/notifyPriceChange", (req, res) => {
   const user = {
     username: req.body.username,
@@ -67,6 +72,22 @@ app.post("/api/stopPriceCheck/:intervalId", (req, res) => {
     // send notification to telegram that priceCheck has stopped
     if (response.success) {
       sendNotification(`PriceCheck stopped for ID=${intervalId}`);
+    }
+  });
+});
+
+// stop all price check
+app.post("/api/stopPriceCheck", (req, res) => {
+  stopAllPriceCheck((response) => {
+    res.json(response);
+
+    // send notification to telegram that all priceCheck has stopped
+    if (response.success) {
+      let notificationMessage = "";
+      response.stopPriceCheckArr.forEach((obj) => {
+        notificationMessage += `${obj.message}\n`;
+      });
+      sendNotification(notificationMessage);
     }
   });
 });

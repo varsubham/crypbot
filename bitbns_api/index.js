@@ -2,6 +2,7 @@ require("dotenv").config({ path: `../.env` });
 const bitbnsAPI = require("bitbns");
 const { sendNotification } = require("../telegram_api");
 const { generateId, pushId } = require("../ids");
+const _ = require("lodash");
 
 //Global variables
 let intervalObj = {};
@@ -21,6 +22,26 @@ exports.stopPriceCheck = (intervalId, callback) => {
     });
   } else {
     callback({ success: false, message: `Send a valid intervalId` });
+  }
+};
+
+exports.stopAllPriceCheck = (callback) => {
+  if (_.isEmpty(intervalObj)) {
+    callback({ success: false, message: "No process running" });
+    return;
+  }
+  let stopPriceCheckArr = [];
+  for (let key in intervalObj) {
+    if (intervalObj.hasOwnProperty(key)) {
+      this.stopPriceCheck(key, (response) => {
+        stopPriceCheckArr.push(response);
+      });
+    }
+  }
+  if (_.isEmpty(intervalObj)) {
+    callback({ success: true, stopPriceCheckArr });
+  } else {
+    callback({ success: false });
   }
 };
 
