@@ -141,3 +141,16 @@ exports.getCurrentPortfolio = (callback) => {
     }
   });
 };
+
+function buyCrypto(crypto, quantity, rate) {
+  const promise = new Promise((resolve, reject) => {
+    bitbns.placeBuyOrder(crypto, quantity, rate, (err, data) => {
+      if (!err) {
+        resolve(data);
+      } else {
+        reject(err);
+      }
+    });
+  });
+  return promise;
+}
