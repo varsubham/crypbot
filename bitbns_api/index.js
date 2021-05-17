@@ -154,3 +154,16 @@ function buyCrypto(crypto, quantity, rate) {
   });
   return promise;
 }
+
+function sellCrypto(crypto, quantity, rate) {
+  const promise = new Promise((resolve, reject) => {
+    bitbns.placeSellOrder(crypto, quantity, rate, (err, data) => {
+      if (!err) {
+        resolve(data);
+      } else {
+        reject(err);
+      }
+    });
+  });
+  return promise;
+}
