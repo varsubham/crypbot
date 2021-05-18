@@ -28,6 +28,9 @@ module.exports = class Queue {
     }
     return this.items.shift();
   }
+  getLength() {
+    return this.items.length;
+  }
   front() {
     if (this.isEmpty()) {
       return "No elements in queue";
