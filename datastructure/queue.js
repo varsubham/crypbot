@@ -11,6 +11,17 @@ module.exports = class Queue {
       this.items.push(element);
     }
   }
+  pushKline(element) {
+    const lastElement = this.back();
+    if (
+      lastElement.open_time === element.open_time &&
+      lastElement.close_time === element.close_time
+    ) {
+      this.items[this.items.length - 1] = element;
+    } else {
+      this.enqueue(element);
+    }
+  }
   dequeue() {
     if (this.isEmpty()) {
       return "Underflow";
