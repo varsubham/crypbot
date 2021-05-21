@@ -25,6 +25,23 @@ function fetchKlinesData(crypto, chartInterval, limit) {
   return promise;
 }
 
+function getLatestPrice(crypto) {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${baseURL}/api/v3/ticker/price`, {
+        params: {
+          symbol: crypto,
+        },
+      })
+      .then((res) => {
+        resolve(res.data);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
 async function initQueue(crypto, queueSize, chartInterval) {
   const queue = new Queue(queueSize);
 
