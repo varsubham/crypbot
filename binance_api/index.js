@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const Queue = require("../datastructure/queue");
 const { sendNotification } = require("../telegram_api/index");
+const { getLastTradedPrice } = require("../bitbns_api/index");
 
 //Global variable
 const baseURL = "https://api.binance.com";
@@ -114,10 +115,51 @@ async function startCheck(crypto, percentGain, chartInterval, queueSize) {
           sendNotification(`${crypto} price more than ${percentChange}`);
           return;
         }
-        console.log(percentChange);
+        console.log(percentChange, "  ", crypto);
       });
     }, 2000);
   } catch (error) {
     throw error;
   }
 }
+
+// compare price
+function comparePrice(crypto) {
+  return new Promise(async (resolve, reject) => {
+    let bitbnsPrice;
+    let binancePrice;
+    try {
+      bitbnsPrice = await getLastTradedPrice(`${crypto}USDT`);
+      binancePrice = await getLatestPrice(`${crypto}USDT`);
+    } catch (err) {
+      reject(err);
+    }
+    const percentChange = Math.abs(
+      ((bitbnsPrice - parseFloat(binancePrice.price)) * 100) /
+        Math.min(bitbnsPrice, parseFloat(binancePrice.price))
+    );
+    resolve(percentChange);
+  });
+}
+
+// start compare price
+function startComparePrice(crypto, thresholdPercent) {
+  const intervalObj = setInterval(() => {
+    comparePrice(crypto)
+      .then((res) => {
+        if (res >= thresholdPercent) {
+          // send notification to telegram
+          sendNotification(`${crypto} is more than ${res}%`);
+          clearInterval(intervalObj);
+        } else {
+          console.log(res);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        clearInterval(intervalObj);
+      });
+  }, 2000);
+}
+
+startComparePrice("BTC", 3);
